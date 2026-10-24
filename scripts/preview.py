@@ -106,13 +106,13 @@ def param(name):
     return float(re.search(rf"^{name}\s*=\s*([-0-9.]+)", txt, re.M).group(1))
 
 
-# The -D flags of the spacer-stack build (scripts/export.sh: spacer_cfg plus the stator layer), for shroud_spacer and the modules.
-SPACER_CFG = ["-D", 'stack_module="spacer"', "-D", "stack_max_len=999", "-D", "stator_layer=true"]
+# The -D flags of the optional stator-layer build (scripts/export.sh: layer_cfg). The default build is already the spacer stack.
+LAYER_CFG = ["-D", "stator_layer=true", "-D", "stack_max_len=999"]
 
 
 def scad(*names, defines=()):
     """Values derived in cad/shroud.scad (numbers or lists of [y, z] points), echoed by OpenSCAD without building geometry.
-    `defines`: extra OpenSCAD arguments (e.g. SPACER_CFG) to read the values of another configuration."""
+    `defines`: extra OpenSCAD arguments (e.g. LAYER_CFG) to read the values of another configuration."""
     import json, subprocess, tempfile
     cad = OUT.parent / "cad"
     with tempfile.TemporaryDirectory() as d:
@@ -138,7 +138,7 @@ def section_duct(pl, normal, origin):
 
 
 # 1. overview from the card side
-pl = plotter(); style(pl, "Shroud + sleeve (green) - from the card side (fan mounts on the far face)", duct)
+pl = plotter(); style(pl, "Shroud + sleeve (green) - from the card side (the spacer, then the fan, bolt to the far face)", duct)
 add_duct(pl); view(pl, duct, (-1, 0.9, 0.6), (0, 0, 1)); shot(pl, "preview_iso.png")
 
 # 2. overview from the fan side
@@ -190,8 +190,8 @@ win = duct.points[(duct.points[:, 0] > 2) & (duct.points[:, 0] < 48) & near(duct
 view(pl, win, (-0.6, -0.8, 0.7 * js), (0, 0, 1), 1.2)
 shot(pl, "preview_joint.png")
 
-# 6. stack, exploded (no fan): the direct mount as printed (sleeve, shroud, fan screws into the shroud's flange).
-# 6b below shows the full modular stack (spacer, stator layer, nose puck, key ring) on the spacer-stack shroud.
+# 6. stack, exploded (no fan): the default build (sleeve, shroud, key ring, spacer; the fan bolts to the spacer).
+# 6b below adds the optional stator layer and nose puck. The direct mount (stack_module "none") has no preview of its own.
 def shifted(m, dx):
     return m.copy().translate((dx, 0, 0), inplace=False)
 
@@ -209,9 +209,12 @@ ring = ring.copy(); ring.rotate_y(90, inplace=True)    # ring axis along X
 nose = nose.copy(); nose.rotate_y(-90, inplace=True)   # puck axis along X, peg toward the shroud (-X)
 peg = param("nose_peg_len")
 sv_x = shifted(sleeve, -15)   # sleeve pulled off the spigot toward the card
-pl = plotter(); style(pl, "Direct mount, exploded (fan not shown): sleeve -> shroud -> fan, all M3x10 countersunk + heat-set inserts\n"
-                           "dashed = assembly guides: M3 screws (grey), inserts (brass); the fan screws go in from the fan side")
-add_part(pl, sv_x, SLEEVE); add_part(pl, shroud)
+g6_ring, g6_spacer = 40, 75                              # display-only shift of the ring and the spacer along X from their fitted place
+ring_6 = on_axis(ring, xe + g6_ring)
+sp_6 = shifted(sp, g6_spacer)
+pl = plotter(); style(pl, "Default stack, exploded (fan not shown): sleeve -> shroud -> key ring -> spacer, all M3x10 countersunk + heat-set inserts\n"
+                           "dashed = assembly guides: M3 screws (grey), inserts (brass); the fan bolts to the spacer from the fan side")
+add_part(pl, sv_x, SLEEVE); add_part(pl, shroud); add_part(pl, ring_6, "#7fa36b"); add_part(pl, sp_6)
 
 # assembly guides, manual style: each fastener pulled out along its axis (all screws run along +X, head toward -X), with a
 # dashed line through the holes it goes in. Positions are the CAD's own (echoed from shroud.scad), moved with the exploded parts.
@@ -262,26 +265,38 @@ xh = v["x_s"] - v["lug_t"] + v["cb_depth"] + ds - 20
 guide(xh - 2, v["jt_x_b0"] + v["joint_hole_depth"], v["jt_y"], v["jt_z"],
       [(screw(xh, v["jt_y"], v["jt_z"]), SCREW), (insert(v["jt_x_b0"] - v["insert_len"] - 4, v["jt_y"], v["jt_z"]), BRASS)])
 labels["sleeve -> shroud: M3x10 + insert (underside, see preview_joint)"] = (xh, v["jt_y"], v["jt_z"])
-# fan -> shroud: 4x M3 from the fan side (head on the fan's corner tab, fan not shown), into inserts in the flange's fan face,
+# spacer -> shroud: 4x M3 from behind the shroud's lug (head in its countersunk pocket) into inserts in the spacer's shroud-side face
+x_sp0, x_sp1 = sp_6.bounds[0], sp_6.bounds[1]
+for i, (y, z) in enumerate(v["stack_pts"]):
+    xh = xe - v["lug_t"] + v["cb_depth"] - 90             # pulled well back, so each head clears the flange behind the funnel
+    xi = x_sp0 - v["insert_len"] - 6
+    guide(xh - 2, x_sp0 + v["stack_hole_depth"], y, z, [(screw(xh, y, z), SCREW), (insert(xi, y, z), BRASS)])
+    if i == 0:
+        labels["4x M3x10 from behind the shroud lug"] = (xh, y, z)
+        labels["4x insert (spacer, shroud side)"] = (xi, y, z)
+# fan -> spacer: 4x M3 from the fan side (head on the fan's corner tab, fan not shown), into inserts in the spacer's fan face,
 # so the fan comes off without touching the rest
 for i, (y, z) in enumerate(v["fan_pts"]):
-    xi = xe + 4
+    xi = x_sp1 + 4
     xh = xi + v["insert_len"] + 6 + v["fan_tab_t"] + v["screw_len"]
-    guide(xe - v["fan_hole_depth"], xh + 2, y, z, [(insert(xi, y, z), BRASS), (screw(xh, y, z, -1), SCREW)])
+    guide(x_sp1 - v["fan_hole_depth"], xh + 2, y, z, [(insert(xi, y, z), BRASS), (screw(xh, y, z, -1), SCREW)])
     if i == 0:
         labels["4x M3x10 from the fan side (through its corner tab)"] = (xh, y, z)
-        labels["4x heat-set insert (shroud flange, fan face)"] = (xi + v["insert_len"], y, z)
+        labels["4x insert (spacer, fan face)"] = (xi + v["insert_len"], y, z)
+top6 = lambda m, f=0.5: (m.bounds[0] + f * (m.bounds[1] - m.bounds[0]), (m.bounds[2] + m.bounds[3]) / 2, m.bounds[5])
+labels["key ring (TPU)"] = top6(ring_6)
+labels["spacer"] = top6(sp_6, 1.0)
 pl.add_point_labels(np.array(list(labels.values())), list(labels.keys()), font_size=16, point_size=1, shape_color="white", shape_opacity=0.85,
                     always_visible=True, text_color=EDGE)
-view(pl, np.vstack([sv_x.points, shroud.points, *glyphs]), (0.9, -1, 0.7), (0, 0, 1), 1.05); shot(pl, "preview_stack.png")
+view(pl, np.vstack([sv_x.points, shroud.points, ring_6.points, sp_6.points, *glyphs]), (0.9, -1, 0.7), (0, 0, 1), 1.05); shot(pl, "preview_stack.png")
 
-# 6b. the full modular stack, exploded the same way (no fan): sleeve -> shroud built for the spacer stack (shroud_spacer: thin lug
-# flange with countersunk pockets and the key groove) -> stator layer -> nose puck -> key ring -> spacer. Positions are echoed
-# from the CAD in that configuration (SPACER_CFG); every part is moved only along X, by the gaps below (display only).
-shs = load("shroud_spacer")
+# 6b. the full modular stack with the optional stator layer, exploded the same way (no fan): sleeve -> shroud (thin lug flange with
+# countersunk pockets and the key groove) -> stator layer -> nose puck -> key ring -> spacer. Positions are echoed from the CAD
+# with the layer fitted (LAYER_CFG); every part is moved only along X, by the gaps below (display only).
+shs = shroud
 v = scad("jt_y", "jt_z", "x_s", "lug_t", "cb_depth", "cs_depth", "jt_x_b0", "joint_hole_depth", "x_end", "stack_hole_depth",
          "spacer_t", "stator_layer_t", "fan_hole_depth", "fan_tab_t", "screw_len", "insert_od", "insert_len", "stack_pts", "fan_pts",
-         defines=SPACER_CFG)
+         defines=LAYER_CFG)
 xe, lt = v["x_end"], v["stator_layer_t"]
 g_layer, g_nose, g_ring, g_spacer = 45, 78, 108, 140      # display-only shift of each part along X from its fitted place
 sl_x = shifted(sl, g_layer)                                # layer as modelled (x_end .. x_end + layer), pulled out
@@ -290,14 +305,14 @@ ring_x = on_axis(ring, xe + lt + g_ring)                   # key ring, sits in t
 sp_x = shifted(sp, lt + g_spacer)                          # spacer: modelled at x_end, fitted at x_end + layer
 x_sp0, x_sp1 = sp_x.bounds[0], sp_x.bounds[1]              # spacer's shroud face, fan face
 parts6 = [(sv_x, SLEEVE), (shs, BODY), (sl_x, BODY), (nose_x, BODY), (ring_x, "#7fa36b"), (sp_x, BODY)]
-pl = plotter(); style(pl, "Modular stack, exploded (fan not shown): sleeve -> shroud (spacer build) -> stator layer -> nose puck -> key ring -> spacer\n"
+pl = plotter(); style(pl, "Stack with the optional stator layer, exploded (fan not shown): sleeve -> shroud -> stator layer -> nose puck -> key ring -> spacer\n"
                            "dashed = assembly guides: M3x10 countersunk screws (grey), heat-set inserts (brass); the fan bolts to the spacer")
 # the shroud is see-through here: from any one camera, one of the 4 stack screws behind its lug sits behind the funnel
 pl.enable_depth_peeling()
 for m, color in parts6:
     add_part(pl, m, color, 0.3 if m is shs else 1.0)
 glyphs, labels = [], {}
-# sleeve -> shroud: the same joint as the direct mount
+# sleeve -> shroud: the same joint as above
 ds = sv_x.bounds[0] - sleeve.bounds[0]
 xh = v["x_s"] - v["lug_t"] + v["cb_depth"] + ds - 20
 guide(xh - 2, v["jt_x_b0"] + v["joint_hole_depth"], v["jt_y"], v["jt_z"],
@@ -322,7 +337,7 @@ for i, (y, z) in enumerate(v["fan_pts"]):
         labels["4x insert (spacer, fan face)"] = (xi + v["insert_len"], y, z)
 # the parts themselves, labelled on their top edge (+Z; the shroud on its bottom edge, clear of the screw label)
 top = lambda m, f=0.5: (m.bounds[0] + f * (m.bounds[1] - m.bounds[0]), (m.bounds[2] + m.bounds[3]) / 2, m.bounds[5])
-labels["shroud, spacer build (lug + key groove)"] = (shs.bounds[0] + 0.55 * (shs.bounds[1] - shs.bounds[0]), shs.bounds[2], shs.bounds[4])   # bottom edge
+labels["shroud (lug + key groove)"] = (shs.bounds[0] + 0.55 * (shs.bounds[1] - shs.bounds[0]), shs.bounds[2], shs.bounds[4])   # bottom edge
 labels["stator layer (vanes + tail cone reach into the shroud)"] = top(sl_x, 0.97)
 labels["nose puck (peg into the layer's hub)"] = top(nose_x)
 labels["key ring (TPU)"] = top(ring_x)

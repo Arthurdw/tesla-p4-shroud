@@ -184,3 +184,15 @@ Relative only: same fan curve, swirl on (3000 rpm), cell 4, 5000 iterations, no 
 | short_t89_5k | 4.15 | 52.5 | 36.7 | 15.8 |
 
 Result: about -0.9 % fin flow for 38 mm less length (the repeat noise is 0.09 %, the decision threshold 1 %). The contraction tolerates the steeper funnel (47.7 degrees). Neither run converged to residualControl; the mass balance is 0.13 % and 0.76 %. Not a cooling validation.
+
+### Spacer variants (A/B/C), 160 mm budget
+
+The length budget became 160 mm (180 measured to the front intake fans, minus about 20 mm intake clearance, [ASSUMED] rule of thumb), and `stack_module = "spacer"` (12 mm spacer, `cfd_stack = 12` moves the fan face out by the spacer thickness) became the default. Same settings as above (3000 rpm, swirl on, cell 4, 5000 iterations, no stator).
+
+| Case | Stack | Funnel | Total | Q fins (CFM) | vs A | fan-face p (Pa) | across fins (Pa) | mass balance |
+|---|---|---|---|---|---|---|---|---|
+| A short_t89_5k | direct mount | 89 | 148 | 4.15 | - | 52.5 | 36.7 | 0.127 % |
+| B spacer_t77_5k | spacer | 77 | 148 | 4.18 | +0.6 % | 52.6 | 37.0 | 0.092 % |
+| C spacer_t89_5k (default) | spacer | 89 | 160 | 4.17 | +0.4 % | 52.5 | 36.8 | 0.092 % |
+
+C vs B is -0.25 %. All differences are inside the 1 % decision threshold (repeat noise 0.1-0.3 %, none of the runs reached residualControl), so the ranking is a tie: the spacer costs nothing measurable, and C keeps the gentler funnel (steepest wall 47.7 degrees against 51.8 for B). Comparative only, not a cooling validation.

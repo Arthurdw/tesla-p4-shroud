@@ -6,21 +6,17 @@ cd "$(dirname "$0")/.."
 extra=()
 [[ "${1:-}" == "--release" ]] && extra=(-D release=true)
 mkdir -p output
+rm -f output/shroud_spacer.stl   # old preview-only build, now the default shroud
 # 3MF (OpenSCAD 2021.01 writes it) for the slicer-ready print parts, in addition to STL.
-# The optional modules (spacer, stator layer, its nose puck, the key ring) only mate with a shroud built for the spacer stack
-# (lug flange with the key groove, instead of the direct mount's thick flange), so they are built in that configuration: their
-# own asserts (screw engagement, insert depth, groove clearance) only run there. shroud_spacer is that shroud, with the stator
-# layer fitted: for the previews only, not a print part (print the default shroud, or rebuild shroud_print with the same -D flags).
-spacer_cfg=(-D 'stack_module="spacer"' -D stack_max_len=999)
-for p in sleeve sleeve_print shroud shroud_print spacer spacer_print stator_layer stator_layer_print stator_nose seal_ring shroud_spacer \
+# The default build is the spacer stack (the fan flange is a separate print: shroud with a lug flange + key groove, spacer, fan).
+# The optional stator layer, its nose puck and the key ring mate with that same shroud. The stator layer adds stator_layer_t to the
+# stack, which no longer fits stack_max_len, so its parts are built with the limit lifted (stack_max_len=999): it is optional.
+layer_cfg=(-D stator_layer=true -D stack_max_len=999)
+for p in sleeve sleeve_print shroud shroud_print spacer spacer_print stator_layer stator_layer_print stator_nose seal_ring \
          fitcheck_mouth fitcheck_interface fitcheck_fanface support_clip support_leg support_foot snap_comb support_assy; do
   case "$p" in sleeve_print|shroud_print|spacer_print|stator_layer_print|fitcheck_mouth) fmts="stl 3mf";; *) fmts="stl";; esac
-  case "$p" in
-    spacer|spacer_print|seal_ring)                  pargs=("${spacer_cfg[@]}"); part="$p";;
-    stator_layer|stator_layer_print|stator_nose)    pargs=("${spacer_cfg[@]}" -D stator_layer=true); part="$p";;
-    shroud_spacer)                                  pargs=("${spacer_cfg[@]}" -D stator_layer=true); part="shroud";;
-    *)                                              pargs=(); part="$p";;
-  esac
+  pargs=(); part="$p"
+  case "$p" in stator_layer|stator_layer_print|stator_nose) pargs=("${layer_cfg[@]}");; esac
   for f in $fmts; do
   out="output/$p.$f"
   rm -f "$out"
@@ -47,9 +43,9 @@ done
 tmp=$(mktemp --suffix=.stl); trap 'rm -f "$tmp"' EXIT
 for sl in false true; do
   if [[ $sl == true ]]; then
-    # The stator layer needs a spacer (direct mount has none), which adds spacer_t + stator_layer_t to the stack: it may not fit the
-    # case. It is optional and off by default, so a problem here is reported as a WARNING, not a failure.
-    sargs=(-D 'stack_module="spacer"' -D stack_max_len=999)
+    # The stator layer adds stator_layer_t to the stack (148 + 3 mm), over stack_max_len: it is optional and off by default, so it is
+    # built with the limit lifted and a problem here is reported as a WARNING, not a failure.
+    sargs=(-D stack_max_len=999)
   else
     sargs=()
   fi
