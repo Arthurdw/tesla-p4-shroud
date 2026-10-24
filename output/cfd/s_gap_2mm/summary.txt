@@ -1,0 +1,16 @@
+CFD run 's_gap_2mm'  (COMPARATIVE ONLY: assumed fan curve, porous fins calibrated on a resolved unit cell, no heat transfer, NOT a cooling validation)
+fan: NF-F12 iPPC-3000 at 3000 rpm, stall curve (shape assumed; pmax 74.8 Pa, Qmax 186.7 m3/h)
+fins: unit cell laminar, A 3.672 B 0.4283 (fin_t 0.3, interpolated 0.3..0.3)
+d=1194332.275637725 f=4.732947612384412
+swirl_rpm=3000.0
+cell=4.0 leak_a=0.0 bypass_h=0.0 hub_d=40.0
+fin_pitch 5.16 mm (10 fins counted), fin_t 0.3 mm (assumed), fan_stack 1
+mesh: 184330 cells, max non-orthogonality 56.108764 deg; solver: NOT converged to residualControl, stopped at iteration 5000
+inlet/outlet flow mismatch 0.200 %
+
+Q total (fan)            2.045e-03 m3/s = 4.33 CFM
+Q through the fins       2.039e-03 m3/s = 4.32 CFM
+fan-face static p        52.6 Pa;  across the fins 38.8 Pa;  everything else 13.8 Pa
+fin-entry CoV of |Ux|    0.162 (over y,z);  0.065 (over 10 z bands)
+flow in the fin-base quarter (first 2 mm above the block's solid base, y 6 to 8 mm) 24.3 % (uniform = 25 %)
+air temperature rise     20.3 K at 50 W, 30.5 K at 75 W (dT = P/(rho cp Q), rho 1.2, cp 1006, all heat into the fin flow)

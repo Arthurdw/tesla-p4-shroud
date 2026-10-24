@@ -1,0 +1,28 @@
+# Noctua NF-F12 industrialPPC-3000 PWM, 3000 rpm, 120 mm, normalised P/Q curve for scripts/cfd.sh
+#
+# PUBLISHED (only these two numbers): max static pressure 7.63 mmH2O = 74.8 Pa, max airflow 186.7 m3/h
+#   source: https://3d.nice-cdn.com/upload/file/noctua_nf_f12_industrialPCC_3000_pwm_datasheet_en_web_1.pdf
+#   (Noctua's own product page, noctua.at/en/nf-f12-industrialppc-3000-pwm, answered HTTP 429 to every request, so the
+#    published P/Q graph could not be fetched and digitised. The datasheet PDF above holds no curve.)
+# ASSUMED: the SHAPE of the curve. Both columns below are normalised (q_frac = Q/186.7 m3/h, p_frac = dp/74.8 Pa)
+#   p_frac_linear : straight line from (0, 1) to (1, 0)  (upper bound at the low flows this shroud sees)
+#   p_frac_stall  : typical high-static-pressure axial fan shape: pressure peak near 12 % of Qmax, a stall dip around 35-40 %,
+#                   and a lower shut-off value (0.86). INVENTED to be typical, not read from a Noctua graph. At the low flows of this
+#                   shroud (about 3-8 % of Qmax) it lies 5-14 % below the linear line.
+# Replace the columns with digitised points as soon as the real graph is available (keep the header lines).
+# Fan laws used for other speeds: Q ~ n, dp ~ n^2 (scripts/cfd.sh --rpm). Pressure is static dp at the fan outlet, air at 1.2 kg/m3.
+q_frac,p_frac_stall,p_frac_linear
+0.00,0.860,1.00
+0.03,0.905,0.97
+0.06,0.950,0.94
+0.12,1.000,0.88
+0.20,0.950,0.80
+0.30,0.800,0.70
+0.38,0.720,0.62
+0.45,0.740,0.55
+0.55,0.660,0.45
+0.65,0.550,0.35
+0.75,0.420,0.25
+0.85,0.270,0.15
+0.93,0.130,0.07
+1.00,0.000,0.00

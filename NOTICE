@@ -1,0 +1,13 @@
+Copyright 2026 Arthurdw.
+
+This source describes Open Hardware and is licensed under the CERN-OHL-P v2
+(SPDX-License-Identifier: CERN-OHL-P-2.0). You may redistribute and modify
+this source and make products using it under the terms of the CERN-OHL-P v2
+(https://cern.ch/cern-ohl), a copy of which is in the LICENSE file.
+
+This source is distributed WITHOUT ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING
+OF MERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A PARTICULAR PURPOSE.
+Please see the CERN-OHL-P v2 for applicable conditions.
+
+The cooling performance of this shroud is not validated by the CAD or the CFD
+in this repository; verify GPU temperatures under load (nvidia-smi).

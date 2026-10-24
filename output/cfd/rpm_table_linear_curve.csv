@@ -1,0 +1,5 @@
+rpm,Q_cfm,Q_m3s,dp_fins_Pa,dTair_50W_K,dTair_75W_K,note
+1500,1.65,7.7737e-04,11.5,53.3,79.9,"final design, linear (upper-bound) fan curve"
+2000,2.50,1.1819e-03,19.1,35.0,52.6,"final design, linear (upper-bound) fan curve"
+2500,3.40,1.6051e-03,28.2,25.8,38.7,"final design, linear (upper-bound) fan curve"
+3000,4.32,2.0376e-03,38.8,20.3,30.5,"final design, linear (upper-bound) fan curve"

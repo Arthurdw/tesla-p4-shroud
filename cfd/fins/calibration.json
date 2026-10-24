@@ -1,0 +1,26 @@
+{
+ "_note": "unit-cell fits, total dp over upstream channel + 170 mm of fins + wake + outlet; dp[Pa] = A*u + B*u^2, u = gap-mean velocity [m/s]",
+ "pitch_mm": 5.16,
+ "H_mm": 8.0,
+ "L_mm": 170.0,
+ "t0.3_laminar": {
+  "A": 3.6716551670023754,
+  "B": 0.42825752664347233,
+  "max_resid_pct": 3.1449362398881
+ },
+ "t0.3_kOmegaSST": {
+  "A": 3.193868280351581,
+  "B": 0.4803457042666178,
+  "max_resid_pct": 1.041905956327977
+ },
+ "t0.8_laminar": {
+  "A": 3.9322898817066436,
+  "B": 0.575938793627541,
+  "max_resid_pct": 2.5420208331992677
+ },
+ "t0.8_kOmegaSST": {
+  "A": 3.4971599379234495,
+  "B": 0.571152527925289,
+  "max_resid_pct": 0.1501020544928274
+ }
+}

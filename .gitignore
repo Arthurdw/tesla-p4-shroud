@@ -1,0 +1,30 @@
+# CFD runs: keep the small summaries (results.json, *.csv, *.png, *.txt),
+# drop the OpenFOAM cases, meshes and solver logs (several GB, regenerable).
+output/cfd/**/case/
+output/cfd/**/log
+output/cfd/**/log.*
+output/cfd/**/*.log
+output/cfd/fins/*/
+output/*.log
+
+# Exported STL/3MF and preview PNGs stay tracked so people can print and
+# see the parts without running OpenSCAD.
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# OpenSCAD / editors / OS
+*.scad.bak
+*.swp
+*~
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local scratch
+*.tmp
+tmp/

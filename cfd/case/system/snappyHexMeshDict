@@ -1,0 +1,48 @@
+/* CFD case template: @KEY@ placeholders are filled by scripts/cfd.sh */
+FoamFile { version 2.0; format ascii; class dictionary; object snappyHexMeshDict; }
+castellatedMesh true;
+snap            true;
+addLayers       false;
+geometry
+{
+    shroud.stl { type triSurfaceMesh; name shroud; }
+    chanBox    { type searchableBox; min (@RXMIN@ @RYMIN@ @RZMIN@); max (@RXMAX@ @RYMAX@ @RZMAX@); }
+}
+castellatedMeshControls
+{
+    maxLocalCells 4000000;
+    maxGlobalCells 3000000;
+    minRefinementCells 0;
+    nCellsBetweenLevels 2;
+    resolveFeatureAngle 30;
+    allowFreeStandingZoneFaces true;
+    features ( { file "shroud.eMesh"; level @FEATLEVEL@; } );
+    refinementSurfaces
+    {
+        shroud { level (@SURFMIN@ @SURFMAX@); patchInfo { type wall; } }
+    }
+    refinementRegions
+    {
+        chanBox { mode inside; levels ((1E15 @BOXLEVEL@)); }
+    }
+    locationInMesh (@LOCX@ @LOCY@ @LOCZ@);
+}
+snapControls
+{
+    nSmoothPatch 3;
+    tolerance 2.0;
+    nSolveIter 50;
+    nRelaxIter 5;
+    nFeatureSnapIter 10;
+    implicitFeatureSnap false;
+    explicitFeatureSnap true;
+    multiRegionFeatureSnap false;
+}
+addLayersControls { layers {} relativeSizes true; expansionRatio 1.2; finalLayerThickness 0.5; minThickness 0.1; }
+meshQualityControls { #include "meshQualityDict"
+    maxNonOrtho 60; maxInternalSkewness 3.5; maxBoundarySkewness 3.5;
+    errorReduction 0.75; nSmoothScale 4;
+    relaxed { #include "meshQualityDict" }
+}
+debug 0;
+mergeTolerance 1e-6;

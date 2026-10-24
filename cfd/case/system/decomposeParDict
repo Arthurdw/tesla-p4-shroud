@@ -1,0 +1,4 @@
+/* CFD case template: @KEY@ placeholders are filled by scripts/cfd.sh */
+FoamFile { version 2.0; format ascii; class dictionary; object decomposeParDict; }
+numberOfSubdomains @NPROC@;
+method scotch;

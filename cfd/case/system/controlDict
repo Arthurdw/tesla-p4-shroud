@@ -1,0 +1,68 @@
+/* CFD case template: @KEY@ placeholders are filled by scripts/cfd.sh */
+FoamFile { version 2.0; format ascii; class dictionary; object controlDict; }
+application     porousSimpleFoam;
+startFrom       startTime;
+startTime       0;
+stopAt          endTime;
+endTime         @ENDTIME@;
+deltaT          1;
+writeControl    timeStep;
+writeInterval   @ENDTIME@;
+purgeWrite      1;
+writeFormat     ascii;
+writePrecision  8;
+timeFormat      general;
+timePrecision   6;
+runTimeModifiable no;
+
+functions
+{
+    flow
+    {
+        type            surfaceFieldValue;
+        libs            (fieldFunctionObjects);
+        writeFields     no;
+        log             no;
+        writeControl    timeStep;
+        writeInterval   10;
+        regionType      patch;
+        name            inlet;
+        operation       sum;
+        fields          (phi);
+    }
+    flowOut
+    {
+        $flow;
+        name            outlet;
+    }
+    pInlet
+    {
+        $flow;
+        operation       areaAverage;
+        fields          (p);
+    }
+    magU { type mag; libs (fieldFunctionObjects); field U; result magU; executeControl timeStep; writeControl none; }
+    finEntry
+    {
+        $flow;
+        regionType      sampledSurface;
+        name            finEntry;
+        sampledSurfaceDict { type cuttingPlane; planeType pointAndNormal; pointAndNormalDict { point (@FEX@ 0 0); normal (1 0 0); } interpolate true; }
+        operation       areaAverage;
+        fields          (p);
+    }
+    finEntryCoV
+    {
+        $finEntry;
+        operation       CoV;
+        fields          (magU);
+    }
+    finExit
+    {
+        $finEntry;
+        sampledSurfaceDict { type cuttingPlane; planeType pointAndNormal; pointAndNormalDict { point (@FOX@ 0 0); normal (1 0 0); } interpolate true; }
+        name            finExit;
+        operation       areaAverage;
+        fields          (p);
+    }
+}

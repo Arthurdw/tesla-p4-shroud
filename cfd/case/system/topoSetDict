@@ -1,0 +1,10 @@
+/* CFD case template: @KEY@ placeholders are filled by scripts/cfd.sh */
+FoamFile { version 2.0; format ascii; class dictionary; object topoSetDict; }
+actions
+(
+    {
+        name fins; type cellSet; action new; source boxToCell;
+        box (@FXMIN@ @FYMIN@ -1) (@FXMAX@ @FYMAX@ 1);   // y limited to the fin channel so a bypass slab / leak tunnel above it stays open air
+    }
+    { name fins; type cellZoneSet; action new; source setToCellZone; set fins; }
+);

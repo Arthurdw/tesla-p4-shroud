@@ -1,0 +1,30 @@
+{
+ "run": "final_rpm1500_c4",
+ "cells": 141394,
+ "converged": false,
+ "iterations": 1500,
+ "q_in_m3s": 0.00073080645394,
+ "q_in_cfm": 1.5484926356985,
+ "q_fins_m3s": 0.0007383651496834174,
+ "q_fins_cfm": 1.5645086200005878,
+ "mismatch_pct": 0.004807910468036321,
+ "dp_fan_Pa": 13.15799390024,
+ "dp_fins_Pa": 10.799011953284879,
+ "dp_outside_Pa": 2.3589819469551205,
+ "cov_entry": 0.25095398040544326,
+ "cov_entry_z_bands": 0.12193758551406797,
+ "near_base_frac": 0.22913671630846275,
+ "p_fin_exit_Pa": 0.012145489275119999,
+ "p_fin_entry_Pa": 10.811157442559999,
+ "dyn_head_fin_exit_Pa": 1.919615523688957,
+ "dT50_K": 56.094410385028475,
+ "dT75_K": 84.14161557754272,
+ "model": [
+  "fan: NF-F12 iPPC-3000 at 1500 rpm, stall curve (shape assumed; pmax 18.7 Pa, Qmax 93.3 m3/h)",
+  "fins: unit cell laminar, A 3.672 B 0.4283 (fin_t 0.3, interpolated 0.3..0.3)",
+  "d=1194332.275637725 f=4.732947612384412",
+  "swirl_rpm=1500.0",
+  "cell=4.0 leak_a=0.0 bypass_h=0.0 hub_d=40.0"
+ ],
+ "fin_t": 0.3
+}

@@ -1,0 +1,1 @@
+fan_p0=28.590222222222216 fan_qmax=0.03457407407407407 rpm=2000.0 fin_k=1.0 fin_dh=6.04666 fin_fre=14.951 fin_pitch=5.16 fin_t=0.3 hs_len=170.0 fan_stack=1 chan_h=8.0 chan_hz=51.6

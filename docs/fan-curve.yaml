@@ -1,0 +1,48 @@
+# Starting fan curve for the Tesla P4 shroud (Noctua NF-F12 iPPC-3000 PWM).
+# STARTING POINT ONLY. CFD (docs/cfd-notes.md) is comparative and cannot predict die temperature.
+# Tune with `nvidia-smi -q -d TEMPERATURE` (and clocks/throttle reasons) under a sustained load.
+# Read by the homelab fan controller (Option A, see README "Fan control").
+
+fan:
+  model: Noctua NF-F12 industrialPPC-3000 PWM
+  datasheet: https://3d.nice-cdn.com/upload/file/noctua_nf_f12_industrialPCC_3000_pwm_datasheet_en_web_1.pdf
+  rpm_max: 3000                 # [PUBLISHED]
+  airflow_max_m3h: 186.7        # [PUBLISHED] free air
+  static_pressure_max_pa: 74.8  # [PUBLISHED] 7.63 mmH2O
+  # The datasheet gives no minimum rpm and no PWM-to-rpm relation. The PWM column below assumes
+  # rpm is roughly proportional to duty. [ASSUMED] Verify with the tach signal and correct it.
+  pwm_to_rpm: proportional_assumed
+
+# From output/cfd/rpm_table.csv (final design, comparative CFD, assumed fan curve shape).
+# dT_air = P / (rho cp Q): air temperature rise only, NOT die temperature.
+cfd_operating_points:
+  - {rpm: 1500, cfm: 1.56, dp_fins_pa: 10.7, dt_air_50w_k: 56.3, dt_air_75w_k: 84.5, note: "too low for 50-75 W"}
+  - {rpm: 2000, cfm: 2.40, dp_fins_pa: 18.1, dt_air_50w_k: 36.6, dt_air_75w_k: 54.9}
+  - {rpm: 2500, cfm: 3.28, dp_fins_pa: 26.9, dt_air_50w_k: 26.7, dt_air_75w_k: 40.1}
+  - {rpm: 3000, cfm: 4.19, dp_fins_pa: 37.2, dt_air_50w_k: 21.0, dt_air_75w_k: 31.4}
+
+# GPU temperature (C, from nvidia-smi / DCGM via the Talos VM exporter) -> target fan speed.
+# Linear interpolation between points; below the first point use the first, above the last use the last.
+# Floor is 2000 rpm because the CFD flags 1500 rpm as too low for a loaded card. Temperatures are
+# placeholders to tune, not published limits.
+curve:
+  - {gpu_temp_c: 40, rpm: 2000, pwm_percent: 67}
+  - {gpu_temp_c: 50, rpm: 2250, pwm_percent: 75}
+  - {gpu_temp_c: 60, rpm: 2500, pwm_percent: 83}
+  - {gpu_temp_c: 70, rpm: 3000, pwm_percent: 100}
+
+hysteresis_c: 3           # do not drop speed until the temperature is this far below the point
+min_update_interval_s: 5  # avoid hunting
+max_input_age_s: 15       # a reading older than this counts as stale
+
+# Fail-safes: any of these forces 100 % PWM.
+failsafe:
+  pwm_percent: 100
+  triggers:
+    - temperature reading missing
+    - temperature reading older than max_input_age_s
+    - exporter in the Talos VM unreachable or lost
+    - controller restart before the first valid reading
+  notes:
+    - Host writes PWM through nct6775 (ASUS PRIME B250M-PLUS Super-I/O) on the Proxmox host.
+    - NVIDIA R580 is the last driver branch that supports Pascal (P4).

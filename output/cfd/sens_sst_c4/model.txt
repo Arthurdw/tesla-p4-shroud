@@ -1,0 +1,5 @@
+fan: NF-F12 iPPC-3000 at 3000 rpm, stall curve (shape assumed; pmax 74.8 Pa, Qmax 186.7 m3/h)
+fins: unit cell kOmegaSST, A 3.194 B 0.4803 (fin_t 0.3, interpolated 0.3..0.3)
+d=1038915.6382770364 f=5.308607351156874
+swirl_rpm=3000.0
+cell=4.0 leak_a=0.0 bypass_h=0.0 hub_d=40.0

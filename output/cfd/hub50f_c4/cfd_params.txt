@@ -1,0 +1,1 @@
+ECHO: "CFD ymin=-6.5 ymax=117.5 zmin=-5.4 zmax=118.6 xmin=-175 diff_ext=0 diff_len=0 xmax=154 xend=149 xs=22 xf=128 fan_cy=55.5 fan_cz=56.6 chan_cy=4 chan_cz=27.5 chan_hz=51.6 chan_h=8 hs_len=170 fan_stack=1 fan_d=122 hub_d=50 loc_x=-85 loc_y=4 loc_z=27.5 d=868325 f=6.63098 fin_pitch=5.16 fin_t=0.3 fin_k=1 leak_a=0 bypass_h=0 fin_dh=6.04666 fin_fre=14.951"
