@@ -197,7 +197,8 @@ tail_ang      = 18;   // tail cone half-angle in degrees (prints at 18 degrees f
 nose_gap      = 0;    // [ASSUMED] the nose puck's flat face stops this far short of the fan face (puck height spacer_t - nose_gap). 0 = flush with the fan's outlet face, continuing the fan hub with no step (assumes the hub on the fan's outlet/strut side is the stationary motor mount and sits no prouder than the frame face: check)
 
 // ---- snap-on supports against sag (standing tower, gravity along +Y; see README) ----
-support_len   = 80;   // [REQUIRED] bar bottom face to the case separator (the PSU shroud below). Placeholder; measure and reprint support_leg
+support_len   = 15;   // [MEASURED, 2026-10-28, "about 1.5 cm"] bar bottom face (the connector point on the shroud) to the bottom of the case below it
+support_style = "block"; // "block": no leg, the clip's base runs down to the case floor (less foot_pad_t); the only choice for short drops like 15 mm (the clip alone hangs ~14 mm below the bar). "leg": dovetail leg + adjustable threaded foot, needs support_len >= ~71 mm
 bar_af        = 10;   // hex bar across flats (non-round so the joint is not a hinge)
 bar_len       = 36;   // bar length along X, ending at the flange (clip slides on it)
 web_t         = 2.4;  // web joining the bar to the shroud
@@ -219,7 +220,7 @@ foot_depth    = 1.2;  // thread depth (peak to valley): the thread is an eccentr
 foot_len      = 28;   // threaded stud length
 foot_disc_d   = 34;   // foot disc diameter
 foot_disc_t   = 4;    // foot disc thickness (a TPU or foam pad goes under it)
-foot_pad_t    = 1.0;  // [ASSUMED] thickness of the TPU / foam pad glued under the foot disc (counted in support_len, the disc underside is flat)
+foot_pad_t    = 1.0;  // [ASSUMED] thickness of the TPU / foam pad glued under the foot disc ("leg") or the clip base ("block"); counted in support_len, so a thicker pad also takes up a too-short measurement
 foot_out      = 12;   // nominal stud length outside the leg
 foot_travel   = 8;    // +/- adjustment of the foot
 thread_clear  = 0.3;  // radial thread clearance (socket)

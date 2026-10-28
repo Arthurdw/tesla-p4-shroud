@@ -1,6 +1,6 @@
 # Tesla P4 cooling shroud (OpenSCAD)
 
-Parametric, 3D-printable shroud that ducts one Noctua NF-F12 iPPC-3000 PWM (120 mm) through the heatsink of a passive NVIDIA Tesla P4. A sleeve slides over the far end of the card, stops flat against the end face of the cooling block, narrows into an 8 mm inlet channel the size of the fin block, and then widens through an 89 mm funnel to a bellmouth flange for the fan. The fan flange is a separate print: a 12 mm spacer bolts to the shroud's lug plate and the fan bolts to the spacer (all M3x10 countersunk into heat-set inserts). A direct mount into the shroud's own flange (`stack_module = "none"`, 148 mm) is the shorter option, and an optional 3 mm stator layer does not fit the case length (see Length budget). A snap-on support clip, leg and adjustable foot carry the weight to the case.
+Parametric, 3D-printable shroud that ducts one Noctua NF-F12 iPPC-3000 PWM (120 mm) through the heatsink of a passive NVIDIA Tesla P4. A sleeve slides over the far end of the card, stops flat against the end face of the cooling block, narrows into an 8 mm inlet channel the size of the fin block, and then widens through an 89 mm funnel to a bellmouth flange for the fan. The fan flange is a separate print: a 12 mm spacer bolts to the shroud's lug plate and the fan bolts to the spacer (all M3x10 countersunk into heat-set inserts). A direct mount into the shroud's own flange (`stack_module = "none"`, 148 mm) is the shorter option, and an optional 3 mm stator layer does not fit the case length (see Length budget). A snap-on support clip carries the weight to the case. With the measured 15 mm drop, the clip's base stands directly on the case floor through a pad (`support_style = "block"`). For drops of about 71 mm or more, `"leg"` adds a dovetail leg and an adjustable threaded foot.
 
 > **Status: work in progress, not yet fit-tested or temperature-tested.** The CAD builds, exports and passes its own interference and air-path checks (`scripts/export.sh`). Several dimensions are still `[ASSUMED]` or `[REQUIRED]` in `cad/params.scad` (`params_confirmed = false`, so `--release` refuses to build); the biggest is `support_len`. Only the sleeve's slide fit on the card is measured so far; print the fit-check parts first (see [Fit validation](#fit-validation)) before the full shroud. **Neither the CAD nor the CFD validates cooling.** The CFD is comparative only (it ranks design changes) and has no heat transfer. Check the GPU temperature under load with `nvidia-smi`.
 
@@ -33,7 +33,7 @@ Parametric, 3D-printable shroud that ducts one Noctua NF-F12 iPPC-3000 PWM (120 
 | `MEASUREMENTS.md` | what is measured, what is still needed, prior art |
 | `output/` | generated STLs, preview PNGs, `output/cfd/` CFD cases and plots |
 
-Parts (`-D 'part="..."'`): `sleeve` / `sleeve_print` (the mouthpiece, joined to the shroud by one M3 into a heat-set insert in the shroud), `shroud`, `shroud_print`, `fitcheck_mouth` (a 5 mm slice of the sleeve wall for a quick fit test), `fitcheck_interface`, `fitcheck_fanface`, `spacer` / `spacer_print`, `stator_layer` / `stator_layer_print`, `stator_nose`, `seal_ring`, `support_clip`, `support_leg`, `support_foot`, `snap_comb`, `support_assy`, `interference`, and `airpath`.
+Parts (`-D 'part="..."'`): `sleeve` / `sleeve_print` (the mouthpiece, joined to the shroud by one M3 into a heat-set insert in the shroud), `shroud`, `shroud_print`, `fitcheck_mouth` (a 5 mm slice of the sleeve wall for a quick fit test), `fitcheck_interface`, `fitcheck_fanface`, `spacer` / `spacer_print`, `stator_layer` / `stator_layer_print`, `stator_nose`, `seal_ring`, `support_clip`, `support_leg` and `support_foot` (only with `support_style = "leg"`), `snap_comb`, `support_assy`, `interference`, and `airpath`.
 
 **The fan and the GPU are never part of any CAD output.** They exist only in `part="interference"` (which must export empty) and in `cfd/`. `part="airpath"` also must export empty: it intersects the printed duct with the air path shrunk by `airpath_margin` (0.5 mm per side), so a wall or boss left inside the duct fails the export.
 
@@ -49,10 +49,10 @@ The case is a standing tower. The P4 fins face down (+Y) toward the metal PSU-sh
    fins (10 x 8 mm) pointing down  \
                                     \   shroud sleeve -> 8 mm channel -> funnel -> fan
    ==============================   <- PSU-shroud separator (metal)
-          support leg + foot
+          support clip stands on it (15 mm below the hex bar)
 ```
 
-Gravity acts along +Y, so the cantilevered fan and funnel sag toward the separator; the support leg stands on it. `fan_flush_y = "lo"` (default) keeps the fan edge level with the PCB-back side, so the funnel grows toward the fin side (down) and away from the CPU cooler.
+Gravity acts along +Y, so the cantilevered fan and funnel sag toward the separator; the support clip stands on it. `fan_flush_y = "lo"` (default) keeps the fan edge level with the PCB-back side, so the funnel grows toward the fin side (down) and away from the CPU cooler.
 
 Along the card height (Z) `fan_flush = "top"` is set: the fan edge is level with the top of the card and the funnel mouth grows toward the low-Z end, away from the card top. Installed, the motherboard is on the card-top (z = `pcb_h`) side, so the fan is level with it and the funnel grows away from it; the old `"bottom"` setting would push the funnel into the motherboard. In the slicer print view of `shroud_print` the mouth is on the RIGHT. The sleeve/shroud joint (lug, screw and insert boss) sits on the other side (`joint_side = "bottom"`), away from the board; the boss stands far enough out that the insert keeps `joint_boss_floor` from the flaring funnel.
 
@@ -66,7 +66,7 @@ Previews (generated from the exported STLs by `scripts/preview.sh`):
 
 ## Design decisions
 
-**Sleeve with a flat stop and a PCB pocket.** The shroud slides `grip` (10 mm) over the far end of the cooling block. The block's end face (its 6 mm solid base) seats on the step where the 8 mm channel starts (`stop_gap` 0.3 mm), so the fins feed the channel directly. The back cover ends flush with the block and seats on the same step. Only the bare PCB sticks out past the block, by `pcb_extra` = 1 mm ([MEASURED]), so it gets a small square-cornered pocket (2.8 mm thick: the 1 mm PCB plus `pcb_slot_extra_y` and `slide_clear` each side) that runs `pcb_end_clear` (1 mm, [ASSUMED]) past the PCB end: the PCB never bottoms out and the block takes the stop. The mouth rim is square, with no chamfer, so the full 2.4 mm wall bears on the card. It is a slip fit; real mounting is the support leg, not friction.
+**Sleeve with a flat stop and a PCB pocket.** The shroud slides `grip` (10 mm) over the far end of the cooling block. The block's end face (its 6 mm solid base) seats on the step where the 8 mm channel starts (`stop_gap` 0.3 mm), so the fins feed the channel directly. The back cover ends flush with the block and seats on the same step. Only the bare PCB sticks out past the block, by `pcb_extra` = 1 mm ([MEASURED]), so it gets a small square-cornered pocket (2.8 mm thick: the 1 mm PCB plus `pcb_slot_extra_y` and `slide_clear` each side) that runs `pcb_end_clear` (1 mm, [ASSUMED]) past the PCB end: the PCB never bottoms out and the block takes the stop. The mouth rim is square, with no chamfer, so the full 2.4 mm wall bears on the card. It is a slip fit; real mounting is the support clip, not friction.
 
 ![Mouth looking in from the card, plus cuts through grip, flat stop and channel](output/preview_mouth.png)
 *The mouth seen from the card side and the cut grip, flat stop, 8 mm channel.*
@@ -259,17 +259,17 @@ An exporter in the Talos VM (with the P4 passed through) reads the GPU temperatu
 - Brim on the large flat flange face against warping. Put the seam on a non-sealing edge. Slow the outer walls (about 30-40 mm/s) for tight sleeve dimensions.
 - Heat-set inserts: iron at about 220-250 C for PETG/ASA, press straight, then let it cool before screwing. Check your inserts' datasheet.
 - Fit-check parts (`fitcheck_mouth`, `sleeve_print`, `fitcheck_interface`, `snap_comb` for a first pass) can be PLA.
-- TPU for the foot pad and the `seal_ring` key (or use foam tape).
+- TPU for the pad under the support clip and the `seal_ring` key (or use foam tape).
 
 ## Assembly order
 
 1. Print `fitcheck_mouth`, then `sleeve_print` and `fitcheck_interface`; check the fit (below).
 2. Print `snap_comb` and pick the clip interference (1.0-2.2 mm) that snaps without cracking.
-3. Measure the drop from the hex bar to the separator; set `support_len`; print the shroud, the spacer, the clip, leg and foot, and TPU pads (and later `stator_layer_print` plus `stator_nose` for the A/B test; run the plain spacer first, as the control).
+3. `support_len` is set to the measured 15 mm (hex bar to the case floor), so the clip is the whole support (`support_style = "block"`). Print the shroud, the spacer, the clip and TPU pads (and later `stator_layer_print` plus `stator_nose` for the A/B test; run the plain spacer first, as the control).
 4. Press the M3 heat-set inserts into both faces of the spacer (for the direct mount option: into the fan face of the shroud's flange instead).
 5. On the bench, screw the fan to the spacer from the fan side, through its corner tabs, with the M3x10 screws (direct mount option: screw the fan straight to the shroud flange instead; that is the whole fan joint, so skip the rest of this step and the spacer join in step 6). Put the `seal_ring` key in the spacer's groove. With the stator: press the nose puck's peg into the layer's hub socket, then set the layer on the spacer (the ring keys the two, the puck sits in the spacer's bore against the fan hub).
 6. Slide the shroud sleeve onto the card end until the block end face touches the flat stop; join the spacer (and layer: its tongue goes into the shroud's groove) with the screws from behind the flange lug.
-7. Fit the clip on the hex bar, add the leg and foot, and adjust the foot to the separator.
+7. Glue the pad under the clip's base and snap the clip onto the hex bar. If the base doesn't quite reach the case floor, use a thicker pad or foam tape. If it lifts the shroud, sand the base or set a smaller `support_len`.
 8. Route the fan cable past the flange (not modelled). Load the GPU and watch `nvidia-smi`.
 
 ## Fit validation
@@ -286,13 +286,13 @@ Do this before trusting any dimension.
 ## Known limits
 
 - The clip snap is untested; only printing `snap_comb` tests it.
-- `support_len` is a placeholder (80 mm). `clear_behind_pcb` and `clear_x_beyond` are guesses; what lies beyond the card end (M.2, RAM) has to go in `extra_keepouts`.
+- `support_len` (15 mm) is a rough measurement ("about 1.5 cm"); the pad under the clip takes up the error. `clear_behind_pcb` and `clear_x_beyond` are guesses; what lies beyond the card end (M.2, RAM) has to go in `extra_keepouts`.
 - Fan blade count, tab thickness, flare diameters, and the insert and countersink details (`cs_clear`, `cs_land`) are assumed; the head size and 90 degree angle are DIN 7991 / ISO 10642 nominals, not measured. See `MEASUREMENTS.md`.
 - Fin width, `fin_t`, and what fills the cover above the fins are unmeasured, so CFD pressure and bypass are uncertain.
 - The CFD is steady RANS with a porous fin model and an assumed fan curve. Absolute flow is uncertain by 15 % or more, and there is no heat transfer.
 - The stator layer is an untested A/B experiment; the diffuser is not in the CAD.
 - 3000 rpm noise and vibration are not assessed.
-- Still to measure: PCB edge thickness (calipers on the board edge; `pcb_t`), rotation direction (`stator_hand`), blade count and a P/Q curve, heat-set insert OD, `board_front_x`, `board_below`, `support_len`, `clear_behind_pcb`, `fin_t`. And the only real cooling result: `nvidia-smi` temperatures under load.
+- Still to measure: PCB edge thickness (calipers on the board edge; `pcb_t`), rotation direction (`stator_hand`), blade count and a P/Q curve, heat-set insert OD, `board_front_x`, `board_below`, `clear_behind_pcb`, `fin_t`. And the only real cooling result: `nvidia-smi` temperatures under load.
 
 ## License
 

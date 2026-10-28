@@ -12,8 +12,13 @@ rm -f output/shroud_spacer.stl   # old preview-only build, now the default shrou
 # The optional stator layer, its nose puck and the key ring mate with that same shroud. The stator layer adds stator_layer_t to the
 # stack, which no longer fits stack_max_len, so its parts are built with the limit lifted (stack_max_len=999): it is optional.
 layer_cfg=(-D stator_layer=true -D stack_max_len=999)
+# support_style "block" has no leg or foot (the clip reaches the case floor), so those two are only built for "leg".
+support_parts="support_clip support_leg support_foot"
+if grep -qE '^support_style *= *"block"' cad/params.scad; then
+  support_parts="support_clip"; rm -f output/support_leg.stl output/support_foot.stl
+fi
 for p in sleeve sleeve_print shroud shroud_print spacer spacer_print stator_layer stator_layer_print stator_nose seal_ring \
-         fitcheck_mouth fitcheck_interface fitcheck_fanface support_clip support_leg support_foot snap_comb support_assy; do
+         fitcheck_mouth fitcheck_interface fitcheck_fanface $support_parts snap_comb support_assy; do
   case "$p" in sleeve_print|shroud_print|spacer_print|stator_layer_print|fitcheck_mouth) fmts="stl 3mf";; *) fmts="stl";; esac
   pargs=(); part="$p"
   case "$p" in stator_layer|stator_layer_print|stator_nose) pargs=("${layer_cfg[@]}");; esac

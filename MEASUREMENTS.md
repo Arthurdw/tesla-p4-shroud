@@ -34,7 +34,7 @@ History: the first fan was an NF-P12 redux-1700 (2.83 mmH2O); an earlier note th
 ## Setup (from you)
 - Standing tower case. The P4 fins face DOWN (+Y) toward a metal PSU-shroud separator; the PCB back faces up toward the CPU cooler. `fan_flush_y = "lo"`.
 - Screws: only M3x10 (`screw_len`). Countersunk heads (user, 2026-10-24): 6.5 x 3.2 mm pockets with a 90 degree countersink at the floor; head diameter `cs_head_d` 6.0 is the DIN 7991 nominal, not measured. M3 heat-set inserts, `insert_len` 4 mm (user); `insert_d` 4.0 is a typical maker hole, not measured.
-- `support_len` ([REQUIRED]): distance from the bottom of the hex bar to the separator below. Placeholder 80 mm in `cad/params.scad`.
+- `support_len` ([MEASURED], 2026-10-28, "about 1.5 cm"): distance from the bottom of the hex bar to the case floor below, 15 mm. That is too short for the leg (it needs about 71 mm or more), so `support_style = "block"`: the clip's base reaches the floor, less `foot_pad_t`.
 
 ## Measured by you
 - Card END cross-section (you measured it; Y = 0 is the PCB face that carries the heatsink, +Y points to the fin tips): back cover 2 mm thick x 54 mm wide (`back_t`, `back_w`); PCB 1 mm thick x 56 mm wide (`pcb_t`, `pcb_h`); cooling block 14 mm thick (`hs_t`), 54 mm wide at the PCB side tapering to 53 mm at the far face (`hs_w`, `hs_w_tip`), rounded corners (not modelled). The block is a 6 mm solid base (`hs_base` = `hs_t` - `hs_h`) plus 8 mm of fins, and the inlet channel sits at the fin-tip side, y 6..14 ([MEASURED], user). The back cover and the block are centred on the PCB across its width (checked by eye, [MEASURED]). Along the card, the bare PCB sticks out 1 mm past the block end face (`pcb_extra`), and the back cover ends flush with the block ([MEASURED], user).
@@ -81,7 +81,7 @@ Please give mm, and photos with the ruler visible.
 
 **D. Fan**
 15. Fan: NF-F12 iPPC-3000, 120 x 25 mm (decided). Still to confirm: hole diameter (`fan_hole_d`), corner radius, tab thickness, open corner (head and hex-key room for screws from the fan side), blade count.
-16. Drop from the shroud's hex bar to the separator below (`support_len`).
+16. Drop from the shroud's hex bar to the separator below (`support_len`). Done: about 15 mm (2026-10-28).
 
 ## Assumptions (to be confirmed, none are baked into geometry)
 1. The fan can sit at the far (non-bracket) end and push air along the fin direction.

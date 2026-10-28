@@ -704,6 +704,12 @@ _bv  = _R + bar_clear / cos(30);                          // cavity vertex half-
 function clip_a_lip(si)  = -(_bv - (_R - si)) * sqrt(3);  // lip tip position: the cavity's upper slant (da/db 1.73) at the throat half-width R - si
 function clip_a_root(si) = clip_a_lip(si) + clip_slit_d;
 function clip_a_bot(si)  = clip_a_root(si) + clip_base_t;
+_block = support_style == "block";
+assert(_block || support_style == "leg", "support_style must be \"block\" or \"leg\"");
+// "block": the base reaches the case floor, less the pad (support_len is measured from the bar's bottom flat)
+block_base_t = support_len - (clip_a_root(snap_interf) - bar_af/2) - foot_pad_t;
+assert(!_block || block_base_t >= 3, str("support_len too short for the clip: base only ", block_base_t, " mm (the snap arms alone hang ",
+       clip_a_root(snap_interf) - bar_af/2, " mm below the bar)"));
 _w_seat = _bv + 2;
 _w_out  = _w_seat + clip_slit + clip_arm_t;
 _tn_s   = ((leg_tn_w - leg_neck_w) / 2) / leg_tn_h;       // dovetail flank slope
@@ -717,33 +723,36 @@ assert(foot_depth * PI / foot_pitch <= 1, "foot thread flank steeper than 45 deg
 assert(foot_len - foot_out - foot_travel >= 2 * foot_pitch, "foot stud too short for its travel");
 assert(2*_w_out >= leg_tn_w + 6, "clip base too narrow for the dovetail");
 
-module clip2d(si) {
+module clip2d(si, base_t = clip_base_t, slot = true) {
     a_lip = clip_a_lip(si);
     a_root = clip_a_root(si);
-    a_bot = clip_a_bot(si);
+    a_bot = a_root + base_t;
     a_top = a_lip - 1.5;
     b_ai = _w_seat + clip_slit;
     hn = (leg_neck_w + slot_fit) / 2;
     difference() {
         union() {
             translate([0, -_w_seat]) square([a_root + eps, 2*_w_seat]);   // seat
-            translate([a_root, -_w_out]) square([clip_base_t, 2*_w_out]);   // base
+            translate([a_root, -_w_out]) square([base_t, 2*_w_out]);   // base
         }
         hex2d(bar_af, bar_clear);
         // dovetail slot (opens at a_bot, widens away from it)
-        polygon([[a_bot + 1, hn - _tn_s], [a_bot + 1, -(hn - _tn_s)], [a_bot - leg_tn_h, -(hn + _tn_s * leg_tn_h)], [a_bot - leg_tn_h, hn + _tn_s * leg_tn_h]]);
+        if (slot) polygon([[a_bot + 1, hn - _tn_s], [a_bot + 1, -(hn - _tn_s)], [a_bot - leg_tn_h, -(hn + _tn_s * leg_tn_h)], [a_bot - leg_tn_h, hn + _tn_s * leg_tn_h]]);
     }
     for (s = [-1, 1]) scale([1, s]) {
         translate([a_top, b_ai]) square([a_root + eps - a_top, clip_arm_t]);   // arm, free above the slit
         polygon([[a_top, b_ai + eps], [a_top, _R - si], [a_lip, _R - si], [-0.5, _bv - 0.5 / sqrt(3)], [-0.5, b_ai + eps]]);   // lip: underside follows the cavity's upper slant, then flat
     }
 }
-module support_clip() { linear_extrude(clip_w) clip2d(snap_interf); }
+// "block": the clip is the whole support, its base stands on the case floor through the pad; "leg": the base holds the leg's dovetail.
+module support_clip_2d() { if (_block) clip2d(snap_interf, block_base_t, false); else clip2d(snap_interf); }
+module support_clip() { linear_extrude(clip_w) support_clip_2d(); }
 
 // Leg (model frame): y = 0 at the clip's bottom face, the column runs to +y (down), the tenon to -y.
 leg_body_len = support_len - (clip_a_bot(snap_interf) - bar_af/2) - foot_out - foot_disc_t - foot_pad_t;
 sock_d = foot_major + 2 * thread_clear;
-assert(leg_body_len >= foot_len + sock_d/2 + 3, str("support_len too short: leg column only ", leg_body_len, " mm"));
+assert(_block || leg_body_len >= foot_len + sock_d/2 + 3, str("support_len too short: leg column only ", leg_body_len, " mm (use support_style = \"block\")"));
+assert(!_block || (part != "support_leg" && part != "support_foot"), "support_style is \"block\": there is no leg or foot, the clip reaches the floor");
 module thread_rod(major, len, clear = 0) {   // eccentric circle twisted along z: the flank slope is depth*pi/pitch <= 1
     linear_extrude(height = len, twist = -360 * len / foot_pitch, slices = ceil(12 * len / foot_pitch), convexity = 6)
         translate([foot_depth / 2, 0]) circle(r = (major - foot_depth) / 2 + clear, $fn = 40);
@@ -787,10 +796,12 @@ module support_assy() {
         translate([fan_fx - nose_gap, fan_cy, fan_cz]) rotate([0, -90, 0]) stator_nose();
     }
     translate([layer_t, 0, 0]) module_part();
-    ext_x(support_xc - clip_w/2, support_xc + clip_w/2, bar_y, fan_cz) clip2d(snap_interf);
-    a_bot = clip_a_bot(snap_interf);
-    translate([support_xc, bar_y + a_bot, fan_cz]) leg_model();
-    translate([support_xc, bar_y + a_bot + leg_body_len + foot_out, fan_cz]) foot_model();
+    ext_x(support_xc - clip_w/2, support_xc + clip_w/2, bar_y, fan_cz) support_clip_2d();
+    if (!_block) {
+        a_bot = clip_a_bot(snap_interf);
+        translate([support_xc, bar_y + a_bot, fan_cz]) leg_model();
+        translate([support_xc, bar_y + a_bot + leg_body_len + foot_out, fan_cz]) foot_model();
+    }
 }
 
 // ---- reference solids (only used by the interference check, never exported or shown) ----

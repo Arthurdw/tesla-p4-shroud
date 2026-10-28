@@ -370,11 +370,15 @@ add_part(pl, sl); view(pl, sl, (-1, 0, 0), (0, 0, 1), 1.1)
 shot(pl, "preview_stator.png")
 
 # 8. supports
-cl, lg, ft, cb = load("support_clip"), load("support_leg"), load("support_foot"), load("snap_comb")
-pl = plotter((1, 3))
-pl.subplot(0, 0); style(pl, "support_clip (hex bar seat, snap arms)", cl); add_part(pl, cl); view(pl, cl, (0.6, -0.6, 0.8), (0, 1, 0))
-pl.subplot(0, 1); style(pl, "support_leg (tenon up, thread socket below)", lg); add_part(pl, lg); view(pl, lg, (1, -1, 0.9), (0, 0, 1))
-pl.subplot(0, 2); style(pl, "support_foot (disc on the bed, thread stud)", ft); add_part(pl, ft); view(pl, ft, (1, -1, 0.9), (0, 0, 1))
+cl, cb = load("support_clip"), load("snap_comb")
+has_leg = (OUT / "support_leg.stl").exists()   # support_style "block" exports no leg or foot
+pl = plotter((1, 3) if has_leg else (1, 1))
+pl.subplot(0, 0); style(pl, "support_clip (hex bar seat, snap arms)" if has_leg else "support_clip (block: base stands on the case floor)", cl)
+add_part(pl, cl); view(pl, cl, (0.6, -0.6, 0.8), (0, 1, 0))
+if has_leg:
+    lg, ft = load("support_leg"), load("support_foot")
+    pl.subplot(0, 1); style(pl, "support_leg (tenon up, thread socket below)", lg); add_part(pl, lg); view(pl, lg, (1, -1, 0.9), (0, 0, 1))
+    pl.subplot(0, 2); style(pl, "support_foot (disc on the bed, thread stud)", ft); add_part(pl, ft); view(pl, ft, (1, -1, 0.9), (0, 0, 1))
 shot(pl, "preview_support_parts.png")
 pl = plotter(); style(pl, "snap_comb - bar plus clips at 5 interference values (dimples = index)", cb)
 add_part(pl, cb); view(pl, cb, (0.8, -0.8, 1), (0, 1, 0)); shot(pl, "preview_comb.png")
